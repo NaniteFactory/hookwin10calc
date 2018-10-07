@@ -16,16 +16,13 @@ import (
 // ----------------------------------------------------------------------------
 
 /*
-#include <string.h>
 #include <Windows.h>
 
 // Due to lack of my knowledge in reversing I literally have no idea what the return type of these functions would be though.
 // Arguments could be guessed; 64-bit integers because they always pass in R8, RDX, RCX in order.
 
-typedef DWORD64 (*ProtoOnDisplayUpdate)(DWORD64, DWORD64, DWORD64);
+// Gateway functions in C.
 DWORD64 OnDisplayUpdate(DWORD64, DWORD64, DWORD64);
-
-typedef DWORD64 (*ProtoOnNumberUpdate)(DWORD64, DWORD64, DWORD64);
 DWORD64 OnNumberUpdate(DWORD64, DWORD64, DWORD64);
 
 */
@@ -33,8 +30,8 @@ import "C"
 
 var isInMiddleOfOnDisplayUpdate bool
 
-var fpDisplayUpdate C.ProtoOnDisplayUpdate
-var fpNumberUpdate C.ProtoOnNumberUpdate
+var fpDisplayUpdate *func(arg1, arg2, arg3 uintptr) (ret uintptr)
+var fpNumberUpdate *func(arg1, arg2, arg3 uintptr) (ret uintptr)
 
 //export OnDisplayUpdate
 func OnDisplayUpdate(arg1, arg2, arg3 uintptr) (ret uintptr) {
@@ -194,9 +191,16 @@ func OnProcessAttach(
 	// ----------------------------------------------------------------------------
 
 	// Block this routine.
-	ch := make(chan int)
 	<-ch
 	outputdebug.String("OnProcessAttach(): Exit")
+}
+
+var ch = make(chan int)
+
+// Unhook everything. This will restore the target process to its original state.
+//export Unhook
+func Unhook() {
+	ch <- 1
 }
 
 // ----------------------------------------------------------------------------

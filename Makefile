@@ -1,4 +1,4 @@
-OUT := my
+OUT := hookwin10calc
 FUNC := Test
 VERSION := $(shell git describe --always --long)
 
